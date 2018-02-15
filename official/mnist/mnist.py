@@ -94,6 +94,17 @@ def model_fn(features, labels, mode, params):
         export_outputs={
             'classify': tf.estimator.export.PredictOutput(predictions)
         })
+    '''
+        tf.estimator.EstimatorSpec:
+        Ops and objects returned from a model_fn and passed to an Estimator.
+        EstimatorSpec fully defines the model to be run by an Estimator.
+        -------------------------------------------------------------------------
+        tf.estimator.export.PredictOutput:
+        Represents the output of a generic prediction head.
+        A generic prediction need not be either a classification or a regression.
+        Named outputs must be provided as a dict from string to Tensor,
+    '''
+
   if mode == tf.estimator.ModeKeys.TRAIN:
     optimizer = tf.train.AdamOptimizer(learning_rate=1e-4)
 
@@ -105,14 +116,24 @@ def model_fn(features, labels, mode, params):
     loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
     accuracy = tf.metrics.accuracy(
         labels=labels, predictions=tf.argmax(logits, axis=1))
-    # Name the accuracy tensor 'train_accuracy' to demonstrate the
-    # LoggingTensorHook.
-    tf.identity(accuracy[1], name='train_accuracy')
+
+    # Name the accuracy tensor 'train_accuracy' to demonstrate the LoggingTensorHook:
+    tf.identity(accuracy[1], name='train_accuracy')      # QA: why not just accuracy? why [1]?
+    # tf.identity: Return a tensor with the same shape and contents as input.
     tf.summary.scalar('train_accuracy', accuracy[1])
+    # accuracy: A Tensor representing the accuracy, the value of total divided by count.
+
     return tf.estimator.EstimatorSpec(
         mode=tf.estimator.ModeKeys.TRAIN,
         loss=loss,
-        train_op=optimizer.minimize(loss, tf.train.get_or_create_global_step()))
+        train_op=optimizer.minimize(loss, global_step=tf.train.get_or_create_global_step()))
+    '''
+        tf.train.LoggingTensorHook:
+        Prints the given tensors every N local steps, every N seconds, or at end.
+        The tensors will be printed to the log, with INFO severity. If you are not seeing the logs,
+        you might want to add the following line after your imports:
+        tf.logging.set_verbosity(tf.logging.INFO)
+    '''
   if mode == tf.estimator.ModeKeys.EVAL:
     logits = model(image, training=False)
     loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
@@ -142,7 +163,7 @@ def validate_batch_size_for_multi_gpu(batch_size):
   if not num_gpus:
     raise ValueError('Multi-GPU mode was specified, but no GPUs '
       'were found. To use CPU, run without --multi_gpu.')
-    
+
   remainder = batch_size % num_gpus
   if remainder:
     err = ('When running with multiple GPUs, batch size '
@@ -168,6 +189,7 @@ def main(unused_argv):
   if data_format is None:
     data_format = ('channels_first'
                    if tf.test.is_built_with_cuda() else 'channels_last')
+
   mnist_classifier = tf.estimator.Estimator(
       model_fn=model_function,
       model_dir=FLAGS.model_dir,
