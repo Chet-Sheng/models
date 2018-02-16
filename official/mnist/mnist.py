@@ -256,10 +256,11 @@ class MNISTArgParser(argparse.ArgumentParser):
         type=str,
         default='/tmp/mnist_model',
         help='The directory where the model will be stored.')
+    # Modified
     self.add_argument(
         '--train_epochs',
         type=int,
-        default=40,
+        default=1,
         help='Number of epochs to train.')
     self.add_argument(
         '--data_format',
@@ -271,9 +272,11 @@ class MNISTArgParser(argparse.ArgumentParser):
         'compatible with CPU. If left unspecified, the data format will be '
         'chosen automatically based on whether TensorFlow was built for CPU or '
         'GPU.')
+    # Modified
     self.add_argument(
         '--export_dir',
         type=str,
+        default='/tmp/mnist_model_export',
         help='The directory where the exported SavedModel will be stored.')
 
 
