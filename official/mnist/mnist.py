@@ -211,9 +211,12 @@ def main(unused_argv):
 
   # Set up training hook that logs the training accuracy every 100 steps.
   tensors_to_log = {'train_accuracy': 'train_accuracy'}
+  #  1st key is name shown in log, 2nd value is name of tensor calculated before
+
   logging_hook = tf.train.LoggingTensorHook(
       tensors=tensors_to_log, every_n_iter=100)
   mnist_classifier.train(input_fn=train_input_fn, hooks=[logging_hook])
+  # log hook every_n_iter can only affact terminal info printout cannot even change tensorboard iteration step.
 
   # Evaluate the model and print results
   def eval_input_fn():
