@@ -100,12 +100,24 @@ def build_dataset(words, n_words):
   unk_count = 0
   for word in words:
     index = dictionary.get(word, 0)
+    # dict.get(key, default = None) returns a value for a given key.
+    # If key is not available then returns default value None.
     if index == 0:  # dictionary['UNK']
       unk_count += 1
     data.append(index)
   count[0][1] = unk_count
   reversed_dictionary = dict(zip(dictionary.values(), dictionary.keys()))
+  # print('data',data[:10])
+  # print('count',count[:10])
+  # print('dictionary',dict(list(dictionary.items())[0:5]))
+  # print('reversed_dictionary',dict(list(reversed_dictionary.items())[0:5]))
+  # print('vocabulary', words[:5])
   return data, count, dictionary, reversed_dictionary
+  # vocabulary ['anarchism', 'originated', 'as', 'a', 'term']
+  # data: [5234, 3081, 12, 6, 195, 2, 3134, 46, 59, 156] # data is index of vocabulary
+  # count: [['UNK', 418391], ('the', 1061396), ('of', 593677), ('and', 416629)]
+  # dictionary {'UNK': 0, 'the': 1, 'of': 2, 'and': 3, 'one': 4}
+  # reversed_dictionary {0: 'UNK', 1: 'the', 2: 'of', 3: 'and', 4: 'one'}
 
 
 # Filling 4 global variables:
@@ -118,17 +130,20 @@ data, count, dictionary, reverse_dictionary = build_dataset(
     vocabulary, vocabulary_size)
 del vocabulary  # Hint to reduce memory.
 print('Most common words (+UNK)', count[:5])
+# Most common words (+UNK) [['UNK', 418391], ('the', 1061396), ('of', 593677), ('and', 416629)]
 print('Sample data', data[:10], [reverse_dictionary[i] for i in data[:10]])
+# Sample data [5234, 3081, 12, 6, 195, 2, 3134, 46, 59, 156]
+# ['anarchism', 'originated', 'as', 'a', 'term', 'of', 'abuse', 'first', 'used', 'against']
 
 data_index = 0
 
 
 # Step 3: Function to generate a training batch for the skip-gram model.
 def generate_batch(batch_size, num_skips, skip_window):
-    '''
-    num_skips: How many times to reuse an input to generate a label.
-    skip_window: How many words to consider left and right.
-    '''
+    # '''
+    # num_skips: How many times to reuse an input to generate a label.
+    # skip_window: How many words to consider left and right.
+    # '''
   global data_index
   assert batch_size % num_skips == 0
   assert num_skips <= 2 * skip_window # what is num_skips?
@@ -136,18 +151,30 @@ def generate_batch(batch_size, num_skips, skip_window):
   labels = np.ndarray(shape=(batch_size, 1), dtype=np.int32) # Construct batch ndarray (random)
   span = 2 * skip_window + 1  # [ skip_window target skip_window ]
   buffer = collections.deque(maxlen=span)  # pylint: disable=redefined-builtin
-  # collections: specialized container datatypes providing alternatives to Python’s
-  # general purpose built-in containers: dict, list, set, and tuple.
-  # deque: bidirectional que. (double-ended queue)
-  # https://docs.python.org/3/library/collections.html
+  '''
+  collections: specialized container datatypes providing alternatives to Python’s
+  general purpose built-in containers: dict, list, set, and tuple.
+  deque: bidirectional que. (double-ended queue).
+  https://docs.python.org/3/library/collections.html
+  '''
+  # when data _index reaching end of data (sentences), restart from begining.
+  # would miss some final words in this case.
   if data_index + span > len(data):
     data_index = 0
-  buffer.extend(data[data_index:data_index + span]) # buffer is a shifting window with size span
+  buffer.extend(data[data_index:data_index + span])
+  # buffer is a shifting window deque with size span. add new info and drop old info.
   data_index += span
   for i in range(batch_size // num_skips): # floor division
-    context_words = [w for w in range(span) if w != skip_window] # [skip_window target skip_window]
-    words_to_use = random.sample(context_words, num_skips) # random.sample(population, k)
-    for j, context_word in enumerate(words_to_use): # j is count; context_word is words_to_use
+    # num_skips: How many times to reuse an input to generate a label.
+    context_words = [w for w in range(span) if w != skip_window]
+    # [skip_window target skip_window]
+    # skip_window: How many words to consider left and right.
+    words_to_use = random.sample(context_words, num_skips)
+    # random.sample(population, k)
+
+    for j, context_word in enumerate(words_to_use):
+      # j is count; context_word is element of words_to_use
+      # http://book.pythontips.com/en/latest/enumerate.html
       batch[i * num_skips + j] = buffer[skip_window]
       labels[i * num_skips + j, 0] = buffer[context_word]
     if data_index == len(data):
@@ -168,7 +195,7 @@ for i in range(8):
 
 # Step 4: Build and train a skip-gram model.
 
-batch_size = 128
+batch_size = 128  # number of word for training.
 embedding_size = 128  # Dimension of the embedding vector.
 skip_window = 1  # How many words to consider left and right.
 num_skips = 2  # How many times to reuse an input to generate a label.
@@ -200,7 +227,8 @@ with graph.as_default():
       embeddings = tf.Variable(
           tf.random_uniform([vocabulary_size, embedding_size], -1.0, 1.0))
       embed = tf.nn.embedding_lookup(embeddings, train_inputs)
-      # embed now is the embedding output of corresponding train_input
+      # embedding_lookup(params, ids)其实就是按照ids顺序返回params中的第ids行。
+      # embed: the embedding output of corresponding train_input
 
     # Construct the variables for the NCE loss
     with tf.name_scope('weights'):
@@ -251,7 +279,8 @@ with graph.as_default():
   saver = tf.train.Saver()
 
 # Step 5: Begin training.
-num_steps = 100001
+# num_steps = 100001
+num_steps = 11
 
 with tf.Session(graph=graph) as session:
   # Open a writer to write summaries.
