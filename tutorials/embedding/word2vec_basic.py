@@ -146,7 +146,7 @@ def generate_batch(batch_size, num_skips, skip_window):
     # '''
   global data_index
   assert batch_size % num_skips == 0
-  assert num_skips <= 2 * skip_window # what is num_skips?
+  assert num_skips <= 2 * skip_window
   batch = np.ndarray(shape=(batch_size), dtype=np.int32) # Construct batch ndarray (random)
   labels = np.ndarray(shape=(batch_size, 1), dtype=np.int32) # Construct batch ndarray (random)
   span = 2 * skip_window + 1  # [ skip_window target skip_window ]
