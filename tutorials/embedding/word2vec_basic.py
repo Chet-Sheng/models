@@ -50,7 +50,7 @@ FLAGS, unparsed = parser.parse_known_args()
 if not os.path.exists(FLAGS.log_dir):
   os.makedirs(FLAGS.log_dir)
 
-# Step 1: Download the data.
+'''Step 1: Download the data.'''
 url = 'http://mattmahoney.net/dc/'
 
 
@@ -85,7 +85,7 @@ def read_data(filename):
 vocabulary = read_data(filename)
 print('Data size', len(vocabulary))
 
-# Step 2: Build the dictionary and replace rare words with UNK token.
+'''Step 2: Build the dictionary and replace rare words with UNK token.'''
 vocabulary_size = 50000
 
 
@@ -138,7 +138,7 @@ print('Sample data', data[:10], [reverse_dictionary[i] for i in data[:10]])
 data_index = 0
 
 
-# Step 3: Function to generate a training batch for the skip-gram model.
+'''Step 3: Function to generate a training batch for the skip-gram model.'''
 def generate_batch(batch_size, num_skips, skip_window):
     # '''
     # num_skips: How many times to reuse an input to generate a label.
@@ -192,9 +192,21 @@ batch, labels = generate_batch(batch_size=8, num_skips=2, skip_window=1)
 for i in range(8):
   print(batch[i], reverse_dictionary[batch[i]], '->', labels[i, 0],
         reverse_dictionary[labels[i, 0]])
+'''
+Result of print:
+batch[i] -> label[i]
+---------------------------------
+3081 originated -> 5234 anarchism
+3081 originated -> 12 as
+12 as -> 3081 originated
+12 as -> 6 a
+6 a -> 12 as
+6 a -> 195 term
+195 term -> 6 a
+195 term -> 2 of
+'''
 
-# Step 4: Build and train a skip-gram model.
-
+'''Step 4: Build and train a skip-gram model.'''
 batch_size = 128  # number of word for training.
 embedding_size = 128  # Dimension of the embedding vector.
 skip_window = 1  # How many words to consider left and right.
@@ -278,7 +290,7 @@ with graph.as_default():
   # Create a saver.
   saver = tf.train.Saver()
 
-# Step 5: Begin training.
+'''Step 5: Begin training.'''
 # num_steps = 100001
 num_steps = 11
 
@@ -292,8 +304,10 @@ with tf.Session(graph=graph) as session:
 
   average_loss = 0
   for step in xrange(num_steps):
+    # generate different batch_input and batch_labels for each iteration
     batch_inputs, batch_labels = generate_batch(batch_size, num_skips,
                                                 skip_window)
+
     feed_dict = {train_inputs: batch_inputs, train_labels: batch_labels}
 
     # Define metadata variable.
@@ -353,9 +367,8 @@ with tf.Session(graph=graph) as session:
 
 writer.close()
 
-# Step 6: Visualize the embeddings.
 
-
+'''Step 6: Visualize the embeddings.'''
 # pylint: disable=missing-docstring
 # Function to draw visualization of distance between embeddings.
 def plot_with_labels(low_dim_embs, labels, filename):
