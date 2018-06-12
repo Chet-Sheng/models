@@ -194,7 +194,11 @@ class Word2Vec(object):
     self._analogy_questions = np.array(questions, dtype=np.int32)
 
   def forward(self, examples, labels):
-    """Build the graph for the forward pass."""
+    """
+    Build the graph for the forward pass.
+    examples:
+    labels:
+    """
     opts = self._options
 
     # Declare all variables we need.
@@ -233,6 +237,7 @@ class Word2Vec(object):
         distortion=0.75,
         unigrams=opts.vocab_counts.tolist()))
 
+    # tf.nn.embedding_lookup(params, ids): ids to be looked up in params
     # Embeddings for examples: [batch_size, emb_dim]
     example_emb = tf.nn.embedding_lookup(emb, examples)
 
