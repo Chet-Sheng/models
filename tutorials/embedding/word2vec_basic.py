@@ -141,12 +141,13 @@ data_index = 0
 # Step 3: Function to generate a training batch for the skip-gram model.
 def generate_batch(batch_size, num_skips, skip_window):
     # '''
+    # batch_size: # Number of word for training.
     # num_skips: How many times to reuse an input to generate a label.
     # skip_window: How many words to consider left and right.
     # '''
   global data_index
-  assert batch_size % num_skips == 0
-  assert num_skips <= 2 * skip_window
+  assert batch_size % num_skips == 0  # 每个target都要有相同次数的num_skip
+  assert num_skips <= 2 * skip_window # 保证不要重复太多次
   batch = np.ndarray(shape=(batch_size), dtype=np.int32) # Construct batch ndarray (random)
   labels = np.ndarray(shape=(batch_size, 1), dtype=np.int32) # Construct batch ndarray (random)
   span = 2 * skip_window + 1  # [ skip_window target skip_window ]
@@ -157,26 +158,26 @@ def generate_batch(batch_size, num_skips, skip_window):
   deque: bidirectional que. (double-ended queue).
   https://docs.python.org/3/library/collections.html
   '''
-  # when data _index reaching end of data (sentences), restart from begining.
+  # when data_index reaching end of data (sentences), restart from begining.
   # would miss some final words in this case.
   if data_index + span > len(data):
     data_index = 0
   buffer.extend(data[data_index:data_index + span])
   # buffer is a shifting window deque with size span. add new info and drop old info.
   data_index += span
-  for i in range(batch_size // num_skips): # floor division
+  for i in range(batch_size // num_skips): # floor division, (batch_size//num_skip)=用几个target word
     # num_skips: How many times to reuse an input to generate a label.
-    context_words = [w for w in range(span) if w != skip_window]
+    context_words = [w for w in range(span) if w != skip_window] # all context_words for a target
     # [skip_window target skip_window]
     # skip_window: How many words to consider left and right.
-    words_to_use = random.sample(context_words, num_skips)
+    words_to_use = random.sample(context_words, num_skips) # 随机取context_word的idx
     # random.sample(population, k)
 
     for j, context_word in enumerate(words_to_use):
       # j is count; context_word is element of words_to_use
       # http://book.pythontips.com/en/latest/enumerate.html
-      batch[i * num_skips + j] = buffer[skip_window]
-      labels[i * num_skips + j, 0] = buffer[context_word]
+      batch[i * num_skips + j] = buffer[skip_window] # target word
+      labels[i * num_skips + j, 0] = buffer[context_word] # context word
     if data_index == len(data):
       buffer.extend(data[0:span])
       data_index = span
