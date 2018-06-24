@@ -13,7 +13,8 @@
 # limitations under the License.
 # ==============================================================================
 
-"""Multi-threaded word2vec mini-batched skip-gram model.
+"""
+Multi-threaded word2vec mini-batched skip-gram model.
 
 Trains the model described in:
 (Mikolov, et. al.) Efficient Estimation of Word Representations in Vector Space
@@ -159,7 +160,7 @@ class Word2Vec(object):
   """Word2Vec model (Skipgram)."""
 
   def __init__(self, options, session):
-    self._options = options
+    self._options = options # Class: Options()
     self._session = session
     self._word2id = {}
     self._id2word = []
@@ -193,7 +194,11 @@ class Word2Vec(object):
     self._analogy_questions = np.array(questions, dtype=np.int32)
 
   def forward(self, examples, labels):
-    """Build the graph for the forward pass."""
+    """
+    Build the graph for the forward pass.
+    examples:
+    labels:
+    """
     opts = self._options
 
     # Declare all variables we need.
@@ -232,6 +237,7 @@ class Word2Vec(object):
         distortion=0.75,
         unigrams=opts.vocab_counts.tolist()))
 
+    # tf.nn.embedding_lookup(params, ids): ids to be looked up in params
     # Embeddings for examples: [batch_size, emb_dim]
     example_emb = tf.nn.embedding_lookup(emb, examples)
 
@@ -514,10 +520,10 @@ def main(_):
   if not FLAGS.train_data or not FLAGS.eval_data or not FLAGS.save_path:
     print("--train_data --eval_data and --save_path must be specified.")
     sys.exit(1)
-  opts = Options()
+  opts = Options() # class
   with tf.Graph().as_default(), tf.Session() as session:
     with tf.device("/cpu:0"):
-      model = Word2Vec(opts, session)
+      model = Word2Vec(opts, session) # class
       model.read_analogies() # Read analogy questions
     for _ in xrange(opts.epochs_to_train):
       model.train()  # Process one epoch
