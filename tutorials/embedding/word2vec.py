@@ -264,9 +264,12 @@ class Word2Vec(object):
     opts = self._options
     true_xent = tf.nn.sigmoid_cross_entropy_with_logits(
         labels=tf.ones_like(true_logits), logits=true_logits)
+        # tf.ones_like(): Creates a tensor with all elements set to 1.
+
     sampled_xent = tf.nn.sigmoid_cross_entropy_with_logits(
         labels=tf.zeros_like(sampled_logits), logits=sampled_logits)
-
+        # Creates a tensor with all elements set to 0.
+        
     # NCE-loss is the sum of the true and noise (sampled words)
     # contributions, averaged over the batch.
     nce_loss_tensor = (tf.reduce_sum(true_xent) +

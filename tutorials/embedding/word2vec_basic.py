@@ -92,10 +92,23 @@ vocabulary_size = 50000
 def build_dataset(words, n_words):
   """Process raw inputs into a dataset."""
   count = [['UNK', -1]]
-  count.extend(collections.Counter(words).most_common(n_words - 1))
+  '''
+  A Counter is a dict subclass for counting hashable objects.
+  It is an unordered collection where elements are stored as dictionary keys and their counts
+  are stored as dictionary values.
+  Counts are allowed to be any integer value including zero or negative counts.
+  The Counter class is similar to bags or multisets in other languages.
+  '''
+  count.extend(collections.Counter(words).most_common(n_words - 1)) # count.extend([('b', 3), ('a', 2), ('c', 1)])
+  # [['UNK', -1],
+  # ('the', 1061396),
+  # ('of', 593677),
+  # ('and', 416629),
+  # ('one', 411764),...]
+  # ie. popular words are at the top of the list.
   dictionary = dict()
   for word, _ in count:
-    dictionary[word] = len(dictionary)
+    dictionary[word] = len(dictionary) # dictionary size increases as more words added
   data = list()
   unk_count = 0
   for word in words:
@@ -263,10 +276,13 @@ with graph.as_default():
     optimizer = tf.train.GradientDescentOptimizer(1.0).minimize(loss)
 
   # Compute the cosine similarity between minibatch examples and all embeddings.
+  # norm=(a^2+b^2+...)^(1/2)
+  # This is norm for each embedding vector
   norm = tf.sqrt(tf.reduce_sum(tf.square(embeddings), 1, keep_dims=True))
   normalized_embeddings = embeddings / norm
   valid_embeddings = tf.nn.embedding_lookup(normalized_embeddings,
                                             valid_dataset)
+  # cosine
   similarity = tf.matmul(
       valid_embeddings, normalized_embeddings, transpose_b=True)
 
