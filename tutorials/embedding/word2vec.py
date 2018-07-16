@@ -227,7 +227,7 @@ class Word2Vec(object):
                 dtype=tf.int64),
         [opts.batch_size, 1])
 
-    # Negative sampling.
+    # [Negative sampling].
     sampled_ids, _, _ = (tf.nn.fixed_unigram_candidate_sampler(
         true_classes=labels_matrix,
         num_true=1,
@@ -275,7 +275,7 @@ class Word2Vec(object):
     sampled_xent = tf.nn.sigmoid_cross_entropy_with_logits(
         labels=tf.zeros_like(sampled_logits), logits=sampled_logits)
         # Creates a tensor with all elements set to 0.
-        
+
     # NCE-loss is the sum of the true and noise (sampled words)
     # contributions, averaged over the batch.
     nce_loss_tensor = (tf.reduce_sum(true_xent) +
