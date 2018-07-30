@@ -227,7 +227,8 @@ class Word2Vec(object):
                 dtype=tf.int64),
         [opts.batch_size, 1])
 
-    # [Negative sampling].
+    '''[Negative sampling].
+    Samples a set of classes using the provided (fixed) base distribution.'''
     sampled_ids, _, _ = (tf.nn.fixed_unigram_candidate_sampler(
         true_classes=labels_matrix,
         num_true=1,
