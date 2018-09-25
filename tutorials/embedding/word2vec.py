@@ -199,7 +199,7 @@ class Word2Vec(object):
     examples:
     labels:
     """
-    opts = self._options
+    opts = self._options # the Option Class
 
     # Declare all variables we need.
     # Embedding: [vocab_size, emb_dim]
@@ -241,6 +241,8 @@ class Word2Vec(object):
     # tf.nn.embedding_lookup(params, ids): ids to be looked up in params
     # Embeddings for examples: [batch_size, emb_dim]
     example_emb = tf.nn.embedding_lookup(emb, examples)
+    # params: embs
+    # ids   : examples
 
     # Weights for labels: [batch_size, emb_dim]
     true_w = tf.nn.embedding_lookup(sm_w_t, labels)
@@ -264,6 +266,9 @@ class Word2Vec(object):
                                transpose_b=True) + sampled_b_vec
     return true_logits, sampled_logits
 
+# I don't think that writting nce_loss this way would improve performance.
+# The original source code of nce_loss basically did the same thing. I think it was efficient enough.
+# But writing it this way would help you understand the
   def nce_loss(self, true_logits, sampled_logits):
     """Build the graph for the NCE loss."""
 
@@ -315,6 +320,7 @@ class Word2Vec(object):
     analogy_c = tf.placeholder(dtype=tf.int32)  # [N]
 
     # Normalized word embeddings of shape [vocab_size, emb_dim].
+    # output = x / sqrt(max(sum(x**2), epsilon))
     nemb = tf.nn.l2_normalize(self._emb, 1)
 
     # Each row of a_emb, b_emb, c_emb is a word's embedding vector.
@@ -329,19 +335,22 @@ class Word2Vec(object):
 
     # Compute cosine distance between each pair of target and vocab.
     # dist has shape [N, vocab_size].
+    # a x b = |a||b|cos(a,b). where |a|=1. This is clever!
     dist = tf.matmul(target, nemb, transpose_b=True)
 
+    '''Get the top 4 words closest to the relationship we difined'''
     # For each question (row in dist), find the top 4 words.
     _, pred_idx = tf.nn.top_k(dist, 4)
 
-    # Nodes for computing neighbors for a given word according to
-    # their cosine distance.
+    '''For any given words, find the top_k nearest words'''
+    # Nodes for computing neighbors for a given word according to their cosine distance.
     nearby_word = tf.placeholder(dtype=tf.int32)  # word id
-    nearby_emb = tf.gather(nemb, nearby_word)
-    nearby_dist = tf.matmul(nearby_emb, nemb, transpose_b=True)
+    nearby_emb = tf.gather(nemb, nearby_word)     # choose the relative normalized embedding
+    nearby_dist = tf.matmul(nearby_emb, nemb, transpose_b=True)  # 1 vs all
     nearby_val, nearby_idx = tf.nn.top_k(nearby_dist,
-                                         min(1000, self._options.vocab_size))
+                                         min(1000, self._options.vocab_size))  # choose top-k nearest word to the 1
 
+    '''So basically, there is basically it defines 2 evaluation method'''
     # Nodes in the construct graph which are used by training and
     # evaluation to run/feed/fetch.
     self._analogy_a = analogy_a
