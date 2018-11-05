@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[dev-packages]
+
+[packages]
+google-cloud-bigquery = "*"
+numpy = "*"
+pandas = "*"
+scikit-learn = "*"
+tqdm = "*"
+tensorflow = "*"
+google-cloud-datastore = "*"
+jupyter = "*"
+
+[requires]
+python_version = "3.6"

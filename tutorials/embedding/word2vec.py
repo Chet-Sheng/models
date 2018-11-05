@@ -255,6 +255,7 @@ class Word2Vec(object):
     sampled_b = tf.nn.embedding_lookup(sm_b, sampled_ids)
 
     # True logits: [batch_size, 1]
+    # Binary
     true_logits = tf.reduce_sum(tf.multiply(example_emb, true_w), 1) + true_b
 
     # Sampled logits: [batch_size, num_sampled]
@@ -270,10 +271,17 @@ class Word2Vec(object):
 # The original source code of nce_loss basically did the same thing. I think it was efficient enough.
 # But writing it this way would help you understand the
   def nce_loss(self, true_logits, sampled_logits):
-    """Build the graph for the NCE loss."""
+    """
+    Build the graph for the NCE loss:
+        Essentially 2 Classifications:
+            1. 0/1 True Target-Context Pair Classification
+            2. 0/1 (binary) Sampled False Target-Context Pair Classification
+        Then Sum the sigmoid cross-entropy loss
+    """
 
     # cross-entropy(logits, labels)
     opts = self._options
+    # Binary Classification with sigmoid loss
     true_xent = tf.nn.sigmoid_cross_entropy_with_logits(
         labels=tf.ones_like(true_logits), logits=true_logits)
         # tf.ones_like(): Creates a tensor with all elements set to 1.
@@ -365,6 +373,7 @@ class Word2Vec(object):
     """Build the graph for the full model."""
     opts = self._options
     # The training data. A text file.
+    # This is just a data processing I/O
     (words, counts, words_per_epoch, self._epoch, self._words, examples,
      labels) = word2vec.skipgram_word2vec(filename=opts.train_data,
                                           batch_size=opts.batch_size,
