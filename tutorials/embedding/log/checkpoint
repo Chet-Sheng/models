@@ -1,2 +1,0 @@
-model_checkpoint_path: "/home/chet/Desktop/Tensorflow-models/tutorials/embedding/log/model.ckpt"
-all_model_checkpoint_paths: "/home/chet/Desktop/Tensorflow-models/tutorials/embedding/log/model.ckpt"
